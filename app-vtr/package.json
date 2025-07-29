@@ -13,6 +13,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "ant": "^0.2.0",
     "antd": "^5.26.4",
+    "lucide-react": "^0.533.0",
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.2.0",

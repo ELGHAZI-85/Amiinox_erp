@@ -1,5 +1,76 @@
 import React, { useState } from 'react';
 
+const cardStyle = {
+  backgroundColor: 'white',
+  padding: '1.5rem',
+  borderRadius: '0.75rem',
+  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.05)',
+};
+
+const sectionTitleStyle = {
+  fontSize: '1.125rem',
+  fontWeight: 600,
+  marginBottom: '1rem',
+  color: '#1f2937',
+};
+
+const inputStyle = {
+  border: '1px solid #d1d5db',
+  borderRadius: '0.5rem',
+  padding: '0.5rem 0.75rem',
+  outline: 'none',
+  width: '100%',
+};
+
+const labelStyle = {
+  display: 'block',
+  fontSize: '0.875rem',
+  fontWeight: 500,
+  color: '#374151',
+  marginBottom: '0.25rem',
+};
+
+const fileItemStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  backgroundColor: '#f9fafb',
+  padding: '0.5rem',
+  borderRadius: '0.5rem',
+};
+
+const removeBtnStyle = {
+  color: '#ef4444',
+  cursor: 'pointer',
+  background: 'none',
+  border: 'none',
+};
+
+const placeholders = {
+  nom: 'Nom *',
+  demandeur: 'Demandeur *',
+  zone: 'Zone',
+  contact: 'Contact *',
+};
+
+const SwitchButton = ({ checked, onChange, label }) => (
+  <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+    <span>{label}</span>
+    <div
+      onClick={onChange}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+        checked ? 'bg-blue-600' : 'bg-gray-300'
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          checked ? 'translate-x-6' : 'translate-x-1'
+        }`}
+      />
+    </div>
+  </label>
+);
+
 const FormReception = () => {
   const [urgent, setUrgent] = useState(false);
   const [delaiRetour, setDelaiRetour] = useState(false);
@@ -18,32 +89,25 @@ const FormReception = () => {
     piecesJointes: [],
     dateRetour: '',
     commentaires: '',
-    state : 0
+    state: 0
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    fieldName: string
-  ) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
     const file = e.target.files?.[0];
     setFormData(prev => ({ ...prev, [fieldName]: file }));
   };
 
-  const handleMultipleFileChange = (
-      e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-      const files = Array.from(e.target.files || []);
-      setFormData(prev => ({
-        ...prev,
-        piecesJointes: [...prev.piecesJointes, ...files],
-      }));
+  const handleMultipleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setFormData(prev => ({
+      ...prev,
+      piecesJointes: [...prev.piecesJointes, ...files],
+    }));
   };
 
   const removeFile = (index) => {
@@ -53,198 +117,149 @@ const FormReception = () => {
     }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const filesToUpload = [];
 
-  try {
-    // Collect all files
-    const filesToUpload = [];
-
-    if (formData.bonSortie) {
-      filesToUpload.push({ file: formData.bonSortie, s3Key: `bons/${formData.bonSortie.name}` });
-    }
-
-    if (formData.devis) {
-      filesToUpload.push({ file: formData.devis, s3Key: `devis/${formData.devis.name}` });
-    }
-
-    formData.piecesJointes.forEach((file, i) => {
-      filesToUpload.push({ file, s3Key: `pieces/${Date.now()}_${i}_${file.name}` });
-    });
-
-    // Upload files to S3
-    const uploadResults = [];
-    for (const { file, s3Key } of filesToUpload) {
-      const buffer = await file.arrayBuffer();
-      const result = await window.electron?.ipcRenderer?.invoke('upload-to-s3', {
-        s3Key,
-        buffer: Array.from(new Uint8Array(buffer)),
-        mimeType: file.type,
-      });
-      
-      if (result.success) {
-        uploadResults.push(result);
-        console.log(" uploaded ")
-      } else {
-        console.error('File upload failed:', result.error);
-        alert(`Failed to upload ${file.name}: ${result.error}`);
-        return; // Stop if any file upload fails
+      if (formData.bonSortie) {
+        filesToUpload.push({ file: formData.bonSortie, s3Key: `bons/${formData.bonSortie.name}` });
       }
-    }
-    
-    console.log('Upload Results:', uploadResults);
 
-    // Prepare form data for DynamoDB (exclude File objects)
-    const cleanFormData = {
-      nom: formData.nom,
-      demandeur: formData.demandeur,
-      zone: formData.zone,
-      contact: formData.contact,
-      affaire: formData.affaire,
-      designation: formData.designation,
-      quantite: formData.quantite,
-      reference: formData.reference,
-      dea: formData.dea,
-      urgent: urgent,
-      delai_retour: delaiRetour,
-      date_retour: formData.dateRetour,
-      commentaires: formData.commentaires,
-      state: 0
-    };
-    const uploadedUrls = uploadResults.map(file => file.url); // extract just the URLs
-    const dbResult = await window.electron?.ipcRenderer?.invoke('save-command-to-dynamo', {
-        formData: cleanFormData,
-        uploadedUrls, // send only the URLs
-    });
+      if (formData.devis) {
+        filesToUpload.push({ file: formData.devis, s3Key: `devis/${formData.devis.name}` });
+      }
 
-    
-    if (dbResult.success) {
-      alert('Request submitted successfully!');
-      // Reset form if needed
-      setFormData({
-        nom: '',
-        demandeur: '',
-        zone: '',
-        contact: '',
-        affaire: '',
-        designation: '',
-        quantite: 1,
-        reference: '',
-        bonSortie: null,
-        devis: null,
-        dea: '',
-        piecesJointes: [],
-        dateRetour: '',
-        commentaires: '',
-        state: 0,
+      formData.piecesJointes.forEach((file, i) => {
+        filesToUpload.push({ file, s3Key: `pieces/${Date.now()}_${i}_${file.name}` });
       });
-      setUrgent(false);
-      setDelaiRetour(false);
-    } else {
-      console.error('DynamoDB save failed:', dbResult.error);
-      alert(`Failed to save to database: ${dbResult.error}`);
-    }
 
-  } catch (error) {
-    console.error('Form submission error:', error);
-    alert(`Submission failed: ${error.message}`);
-  } 
-};
-  const SwitchButton = ({ checked, onChange, label }) => (
-    <div className="flex items-center space-x-3">
-      <span className="text-sm font-medium">{label}</span>
-      <div 
-        className={`relative inline-flex h-6 w-11 items-center rounded-full cursor-pointer transition-colors ${
-          checked ? 'bg-blue-600' : 'bg-gray-300'
-        }`}
-        onClick={onChange}
-      >
-        <span 
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            checked ? 'translate-x-6' : 'translate-x-1'
-          }`}
-        />
-      </div>
-      {/* <span className="text-sm text-gray-600">{checked ? 'ON' : 'OFF'}</span> */}
-    </div>
-  );
+      const uploadResults = [];
+      for (const { file, s3Key } of filesToUpload) {
+        const buffer = await file.arrayBuffer();
+        const result = await window.electron?.ipcRenderer?.invoke('upload-to-s3', {
+          s3Key,
+          buffer: Array.from(new Uint8Array(buffer)),
+          mimeType: file.type,
+        });
+
+        if (!result.success) {
+          alert(`Échec de l'envoi du fichier ${file.name} : ${result.error}`);
+          return;
+        }
+
+        uploadResults.push(result);
+      }
+
+      const cleanFormData = {
+        nom: formData.nom,
+        demandeur: formData.demandeur,
+        zone: formData.zone,
+        contact: formData.contact,
+        affaire: formData.affaire,
+        designation: formData.designation,
+        quantite: formData.quantite,
+        reference: formData.reference,
+        dea: formData.dea,
+        urgent: urgent,
+        delai_retour: delaiRetour,
+        date_retour: formData.dateRetour,
+        commentaires: formData.commentaires,
+        state: 0,
+      };
+
+      const uploadedUrls = uploadResults.map(file => file.url);
+      const dbResult = await window.electron?.ipcRenderer?.invoke('save-command-to-dynamo', {
+        formData: cleanFormData,
+        uploadedUrls,
+      });
+
+      if (dbResult.success) {
+        alert('Demande soumise avec succès!');
+        setFormData({
+          nom: '',
+          demandeur: '',
+          zone: '',
+          contact: '',
+          affaire: '',
+          designation: '',
+          quantite: 1,
+          reference: '',
+          bonSortie: null,
+          devis: null,
+          dea: '',
+          piecesJointes: [],
+          dateRetour: '',
+          commentaires: '',
+          state: 0,
+        });
+        setUrgent(false);
+        setDelaiRetour(false);
+      } else {
+        alert(`Échec de l'enregistrement : ${dbResult.error}`);
+      }
+    } catch (error) {
+      alert(`Erreur de soumission : ${error.message}`);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-6">
-      <h1 className="text-3xl font-bold text-center text-blue-800 mb-10">Réception</h1>
-      
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
-          {/* Colonne gauche */}
-          <div className="space-y-6">
-            {/* Client Section */}
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-lg font-semibold mb-3 text-gray-800">Client</h2>
-              <div className="grid grid-cols-2 gap-3">
-                <input 
-                  name="nom" 
-                  placeholder="Nom *" 
-                  className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                  onChange={handleChange} 
-                  required 
-                />
-                <input 
-                  name="demandeur" 
-                  placeholder="Demandeur *" 
-                  className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                  onChange={handleChange} 
-                  required 
-                />
-                <input 
-                  name="zone" 
-                  placeholder="Zone" 
-                  className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                  onChange={handleChange} 
-                />
-                <input 
-                  name="contact" 
-                  placeholder="Contact *" 
-                  className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                  onChange={handleChange} 
-                  required 
-                />
-                <input 
-                  name="affaire" 
-                  placeholder="Affaire suivie par *" 
-                  className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 col-span-2" 
-                  onChange={handleChange} 
-                  required 
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2.5rem 1.5rem' }}>
+      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', textAlign: 'center', color: '#2563eb', marginBottom: '2.5rem' }}>
+        Réception
+      </h1>
+
+      <form onSubmit={handleSubmit} style={{ maxWidth: '72rem', margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
+          {/* Partie gauche */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Client */}
+            <div style={cardStyle}>
+              <h2 style={sectionTitleStyle}>Client</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                {['nom', 'demandeur', 'zone', 'contact'].map((name) => (
+                  <input
+                    key={name}
+                    name={name}
+                    placeholder={placeholders[name]}
+                    onChange={handleChange}
+                    required={['nom', 'demandeur', 'contact'].includes(name)}
+                    style={inputStyle}
+                  />
+                ))}
+                <input
+                  name="affaire"
+                  placeholder="Affaire suivie par *"
+                  onChange={handleChange}
+                  required
+                  style={{ ...inputStyle, gridColumn: 'span 2' }}
                 />
               </div>
             </div>
 
             {/* Pièces jointes */}
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-lg font-semibold mb-3 text-gray-800">Pièces jointes</h2>
-              <input 
-                type="file" 
+            <div style={cardStyle}>
+              <h2 style={sectionTitleStyle}>Pièces jointes</h2>
+              <input
+                type="file"
                 multiple
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.mp4,.avi,.mov,.mp3,.wav,.ogg"
                 onChange={handleMultipleFileChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                style={inputStyle}
               />
-              <p className="text-sm text-gray-600 mt-2">
+              <p style={{ fontSize: '0.875rem', color: '#4b5563', marginTop: '0.5rem' }}>
                 Formats acceptés: Images, PDF, Documents, Vidéos, Audio
               </p>
               {formData.piecesJointes.length > 0 && (
-                <div className="mt-3">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Fichiers sélectionnés:</h3>
-                  <div className="space-y-2 max-h-24 overflow-y-auto">
+                <div style={{ marginTop: '0.75rem' }}>
+                  <h3 style={{ fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Fichiers sélectionnés:</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '6rem', overflowY: 'auto' }}>
                     {formData.piecesJointes.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                        <span className="text-sm text-gray-700 truncate">{file.name}</span>
-                        <button 
-                          type="button" 
-                          onClick={() => removeFile(index)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          ✕
-                        </button>
+                      <div key={index} style={fileItemStyle}>
+                        <span style={{ fontSize: '0.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {file.name}
+                        </span>
+                        <button type="button" onClick={() => removeFile(index)} style={removeBtnStyle}>✕</button>
                       </div>
                     ))}
                   </div>
@@ -253,138 +268,83 @@ const handleSubmit = async (e) => {
             </div>
 
             {/* Commentaires */}
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-lg font-semibold mb-3 text-gray-800">Commentaires</h2>
-              <textarea 
-                name="commentaires" 
-                placeholder="Commentaires additionnels..." 
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-vertical" 
-                onChange={handleChange} 
+            <div style={cardStyle}>
+              <h2 style={sectionTitleStyle}>Commentaires</h2>
+              <textarea
+                name="commentaires"
+                placeholder="Commentaires additionnels..."
+                onChange={handleChange}
+                style={{ ...inputStyle, height: '4rem', resize: 'vertical' }}
               />
             </div>
           </div>
 
-          {/* Commande Section */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Commande</h2>
-            <div className="space-y-4">
-              {/* Désignation */}
-              <div>
-                {/* <label className="block text-sm font-medium text-gray-700 mb-1">Désignation *</label> */}
-                <textarea 
-                  name="designation" 
-                  placeholder="Désignation *" 
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-vertical" 
-                  onChange={handleChange} 
-                  required 
-                />
-              </div>
-
-              {/* Quantité */}
-<div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">Quantité *</label>
-  <div className="flex items-center space-x-2">
-    <input 
-      type="number" 
-      name="quantite" 
-      value={formData.quantite}
-      onChange={handleChange}
-      className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-20 text-center" 
-      min="1"
-      required 
-    />
-  </div>
-</div>
-
-              {/* Référence */}
-              <input 
-                name="reference" 
-                placeholder="Référence" 
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                onChange={handleChange} 
+          {/* Partie droite */}
+          <div style={cardStyle}>
+            <h2 style={sectionTitleStyle}>Commande</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <textarea
+                name="designation"
+                placeholder="Désignation *"
+                onChange={handleChange}
+                required
+                style={{ ...inputStyle, height: '5rem', resize: 'vertical' }}
               />
-
-              {/* Bon de Sortie */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bon de Sortie</label>
-                <input 
-                  type="file" 
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileChange(e, 'bonSortie')}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                <label style={labelStyle}>Quantité *</label>
+                <input
+                  type="number"
+                  name="quantite"
+                  value={formData.quantite}
+                  onChange={handleChange}
+                  min="1"
+                  required
+                  style={{ ...inputStyle, width: '6rem', textAlign: 'center' }}
                 />
-                {formData.bonSortie && (
-                  <p className="text-sm text-gray-600 mt-1">Fichier sélectionné: {formData.bonSortie.name}</p>
-                )}
               </div>
-
-              {/* Devis */}
+              <input name="reference" placeholder="Référence" onChange={handleChange} style={inputStyle} />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Devis</label>
-                <input 
-                  type="file" 
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileChange(e, 'devis')}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                />
-                {formData.devis && (
-                  <p className="text-sm text-gray-600 mt-1">Fichier sélectionné: {formData.devis.name}</p>
-                )}
+                <label style={labelStyle}>Bon de Sortie</label>
+                <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, 'bonSortie')} style={inputStyle} />
               </div>
-
-              {/* DEA */}
-              <input 
-                name="dea" 
-                placeholder="DEA (Identifiant)" 
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                onChange={handleChange} 
-              />
-
-              {/* Options */}
-
-                <div className="flex flex-wrap gap-6 items-center">
-                  <SwitchButton 
-                    checked={urgent} 
-                    onChange={() => setUrgent(!urgent)}
-                    label="Urgent"
-                  />
-                  
-                  <SwitchButton 
-                    checked={delaiRetour} 
-                    onChange={() => setDelaiRetour(!delaiRetour)}
-                    label="Délai de Prise de Cotes"
-                  />
+              <div>
+                <label style={labelStyle}>Devis</label>
+                <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, 'devis')} style={inputStyle} />
+              </div>
+              <input name="dea" placeholder="DEA (Identifiant)" onChange={handleChange} style={inputStyle} />
+              <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+                <SwitchButton checked={urgent} onChange={() => setUrgent(!urgent)} label="Urgent" />
+                <SwitchButton checked={delaiRetour} onChange={() => setDelaiRetour(!delaiRetour)} label="Délai de Prise de Cotes" />
+              </div>
+              {delaiRetour && (
+                <div>
+                  <label style={labelStyle}>Date de retour</label>
+                  <input type="date" name="dateRetour" value={formData.dateRetour} onChange={handleChange} style={inputStyle} />
                 </div>
-
-{delaiRetour && (
-  <div className="mt-3 pl-4 border-l-4 border-blue-500">
-    <label className="block text-sm font-medium text-gray-700 mb-1">Date de retour</label>
-    <input 
-      type="date" 
-      name="dateRetour"
-      value={formData.dateRetour}
-      onChange={handleChange}
-      className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-    />
-  </div>
-)}
-
-
+              )}
             </div>
           </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex justify-center gap-6 mt-8">
-          <button 
-            type="submit" 
-            onClick={handleSubmit}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition-colors"
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+          <button
+            type="submit"
+            style={{
+              backgroundColor: '#2563eb',
+              color: 'white',
+              fontWeight: 500,
+              padding: '0.75rem 2rem',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s',
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
+            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
           >
             Soumettre
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };

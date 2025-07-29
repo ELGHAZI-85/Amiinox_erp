@@ -14,15 +14,21 @@ export default function Dashboard() {
 
   const mapItemToTask = (item: any): Task => ({
     id: item.request_id,
-    title: item.nom || "Sans titre",
-    description: item.designation || "",
-    labels: [item.affaire, item.zone].filter(Boolean), // Optional label grouping
-    assignee: item.demandeur || "Inconnu",
-    dueDate: item.date_retour || "Aucune date",
+    affaire_suivie: item.affaire,
+    nom: item.nom,
+    demandeur: item.demandeur,
+    zone: item.zone,
+    contact: item.contact,
+    designation: item.designation,
+    quantite: item.quantite,
+    reference: item.reference,
+    dateRetour: item.date_retour || "Aucune date",
     priority: item.urgent ? "high" : "medium",
     notes: item.commentaires || "",
     urls: item.urls || [],
+    state: item.state
   });
+
 
   useEffect(() => {
     async function fetchTasks() {
@@ -114,24 +120,17 @@ export default function Dashboard() {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="p-6 bg-gray-50 min-h-screen">
-        <div className="header">
+      <div>
+      <div className = "header">
         <h1>🏭 Gestion de Production - AMIIN Inox</h1>
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            flexDirection: "row",
-            gap: "24px",
-            maxWidth: "1200px",
-            margin: "0 auto",
-          }}
-        >
-          <Column title="EN ATTENTE" tasks={enAttente} id="en-attente" count={enAttente.length} />
-          <Column title="EN PRODUCTION" tasks={enProduction} id="en-production" count={enProduction.length} />
-          <Column title="CLÔTURE" tasks={cloture} id="cloture" count={cloture.length} />
-        </div>
+      </div>
+
+      <div className="kanban-board">
+          <Column title="⏳ EN ATTENTE" tasks={enAttente} id="en-attente" count={enAttente.length} />
+          <Column title="🔧 EN PRODUCTION" tasks={enProduction} id="en-production" count={enProduction.length} />
+          <Column title="✅ CLÔTURE" tasks={cloture} id="cloture" count={cloture.length} />
+      </div>
+
       </div>
     </DragDropContext>
   );

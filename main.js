@@ -138,6 +138,7 @@ ipcMain.handle('get-commands-from-dynamo', async () => {
     return { error: true, message: err.message };
   }
 });
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {

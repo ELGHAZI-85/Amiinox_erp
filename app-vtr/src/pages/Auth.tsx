@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react'; // Assurez-vous d'avoir installé ce package
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -26,10 +27,8 @@ const AuthPage = () => {
 
     setTimeout(() => {
       if (formData.matricule === 'rec@' && formData.password === 'rec') {
-        console.log('Connexion réussie!');
         navigate('/formReception');
       } else if (formData.matricule === 'admin@' && formData.password === 'admin') {
-        console.log('Connexion admin réussie!');
         navigate('/dashboard');
       } else {
         setError('Matricule ou mot de passe incorrect');
@@ -39,117 +38,201 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-4xl w-full mx-4 bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="flex min-h-[600px]">
-          {/* Section gauche - Illustration */}
-          <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-12">
-            <div className="text-center">
-              <div className="relative mb-8">
-                <div className="w-64 h-64 mx-auto">
-                  <div className="relative">
-                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-orange-200 rounded-full border-2 border-gray-800">
-                      <div className="absolute -top-2 left-2 w-12 h-8 bg-gray-800 rounded-full"></div>
-                      <div className="absolute top-4 left-4 w-2 h-2 bg-gray-800 rounded-full"></div>
-                      <div className="absolute top-4 right-4 w-2 h-2 bg-gray-800 rounded-full"></div>
-                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-6 h-3 border-b-2 border-gray-800 rounded-full"></div>
-                    </div>
-                    <div className="absolute top-14 left-1/2 transform -translate-x-1/2 w-24 h-32 bg-blue-600 rounded-t-full">
-                      <div className="absolute -left-6 top-4 w-6 h-16 bg-blue-600 rounded-full transform rotate-12"></div>
-                      <div className="absolute -right-6 top-4 w-6 h-16 bg-blue-600 rounded-full transform -rotate-12"></div>
-                    </div>
-                    <div className="absolute top-44 left-1/2 transform -translate-x-1/2">
-                      <div className="w-8 h-16 bg-blue-800 rounded-full absolute -left-4"></div>
-                      <div className="w-8 h-16 bg-blue-800 rounded-full absolute right-4"></div>
-                    </div>
-                  </div>
-                  <div className="absolute bottom-0 right-8">
-                    <div className="w-24 h-18 bg-gray-800 rounded-t-lg border-2 border-gray-900">
-                      <div className="w-20 h-14 bg-blue-100 m-1 rounded"></div>
-                    </div>
-                    <div className="w-28 h-4 bg-gray-600 rounded-b-lg -mt-1"></div>
-                    <div className="w-20 h-3 bg-gray-700 rounded mt-1 mx-auto"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+<div
+  style={{
+    minHeight: '100vh',
+    background: 'linear-gradient(to top right, #bfdbfe, #ffffff, #c7d2fe)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '1rem',
+  }}
+>
+  <div
+    style={{
+      maxWidth: '64rem',
+      width: '100%',
+      backgroundColor: 'white',
+      borderRadius: '1rem',
+      boxShadow: '0 20px 25px rgba(0, 0, 0, 0.1)',
+      overflow: 'hidden',
+      animation: 'fade-in 0.5s ease-in',
+    }}
+  >
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '600px',
+      }}
+    >
+      {/* Left Section */}
+      <div
+        style={{
+          flex: 1,
+          background: 'linear-gradient(to bottom right, #bfdbfe, #c7d2fe)',
+          display: 'none',
+        }}
+        className="md:flex" // keep this if you use media queries in CSS elsewhere
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            textAlign: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '3rem',
+            gap: '0.5rem',
+            flex: 1,
+          }}
+        >
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#1d4ed8' }}>
+            Bienvenue 👋
+          </h2>
+          <p style={{ color: '#1e3a8a' }}>Connectez-vous pour accéder à votre espace</p>
+        </div>
+      </div>
+
+      {/* Right Section - Form */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2.5rem',
+        }}
+      >
+        <div style={{ width: '100%', maxWidth: '28rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#2563eb' }}>
+              Authentification
+            </h1>
+            <p style={{ marginTop: '0.5rem', color: '#6b7280' }}>
+              Entrez vos identifiants pour continuer
+            </p>
           </div>
 
-          {/* Section droite - Formulaire */}
-          <div className="flex-1 flex items-center justify-center p-12">
-            <div className="w-full max-w-sm">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-blue-600 mb-2">
-                  Authentification
-                </h1>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {error && (
+              <div
+                style={{
+                  backgroundColor: '#fee2e2',
+                  border: '1px solid #f87171',
+                  color: '#b91c1c',
+                  padding: '1rem',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.875rem',
+                }}
+              >
+                {error}
               </div>
+            )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-                    {error}
-                  </div>
-                )}
+            <div style={{ marginBottom: '5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.2rem', fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>
+                Matricule
+              </label>
+              <input
+                type="text"
+                name="matricule"
+                value={formData.matricule}
+                onChange={handleInputChange}
+                placeholder="Ex: admin@"
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.5rem',
+                  outline: 'none',
+                  transition: '0.2s',
+                }}
+              />
+            </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <input
-                      type="text"
-                      name="matricule"
-                      value={formData.matricule}
-                      onChange={handleInputChange}
-                      placeholder="Matricule"
-                      className="w-full px-4 py-3  rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Password"
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                    >
-                      {showPassword ? '🙈' : '👁️'}
-                    </button>
-                  </div>
-                </div>
-
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>
+                Mot de passe
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Votre mot de passe"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem',
+                    paddingRight: '3rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.5rem',
+                    outline: 'none',
+                    transition: '0.2s',
+                  }}
+                />
                 <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 ${
-                    isLoading
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
-                  }`}
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#6b7280',
+                    cursor: 'pointer',
+                  }}
+                  aria-label="Toggle Password"
                 >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Connexion...
-                    </div>
-                  ) : (
-                    'Connect'
-                  )}
+                  {showPassword ? '🙈' : '👁️'}
                 </button>
-
-
-              </form>
+              </div>
             </div>
-          </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: '0.5rem',
+                fontWeight: 600,
+                color: '#fff',
+                backgroundColor: isLoading ? '#9ca3af' : '#2563eb',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                transition: '0.2s',
+              }}
+            >
+              {isLoading ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                  <div
+                    style={{
+                      height: '1.25rem',
+                      width: '1.25rem',
+                      border: '2px solid white',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite',
+                    }}
+                  />
+                  Connexion...
+                </div>
+              ) : (
+                'Se connecter'
+              )}
+            </button>
+          </form>
         </div>
       </div>
     </div>
+  </div>
+</div>
   );
 };
 
