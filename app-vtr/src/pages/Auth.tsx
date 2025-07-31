@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react'; // Assurez-vous d'avoir installé ce package
+// import { Eye, EyeOff } from 'lucide-react'; // Assurez-vous d'avoir installé ce package
 
 const AuthPage = () => {
   const navigate = useNavigate();

@@ -1,12 +1,12 @@
 import React from "react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import TaskCard, { Task } from "./TaskCard";
-
+import { ColumnType } from "../utils/data-tasks"; 
 
 interface ColumnProps {
   title: string;
   tasks: Task[];
-  id: string;
+  id: ColumnType; 
   count: number;
 }
 

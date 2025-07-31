@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: join(__dirname, '.env') });
 
 const dynamodb = new DynamoDBClient({
   region: process.env.AWS_REGION,
@@ -46,7 +46,11 @@ const createWindow = () => {
   // });
 
   // win.loadURL(startUrl);
-  win.loadURL('http://localhost:5173');
+  if (app.isPackaged) {
+    win.loadFile(join(__dirname, 'app-vtr', 'dist', 'index.html'));
+  } else {
+    win.loadURL('http://localhost:5173');
+  }
 };
 
 ipcMain.handle('upload-to-s3', async (event, { s3Key, buffer, mimeType }) => {

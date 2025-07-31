@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { SwitchButtonProps } from '../utils/data-tasks';
+import { FormReceptionData } from '../utils/data-tasks'; // ou le bon chemin
 
 const cardStyle = {
   backgroundColor: 'white',
@@ -53,7 +55,10 @@ const placeholders = {
   contact: 'Contact *',
 };
 
-const SwitchButton = ({ checked, onChange, label }) => (
+type PlaceholderKey = keyof typeof placeholders;
+const clientFields: PlaceholderKey[] = ['nom', 'demandeur', 'zone', 'contact'];
+
+const SwitchButton: React.FC<SwitchButtonProps> = ({ checked, onChange, label }) => (
   <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
     <span>{label}</span>
     <div
@@ -74,7 +79,7 @@ const SwitchButton = ({ checked, onChange, label }) => (
 const FormReception = () => {
   const [urgent, setUrgent] = useState(false);
   const [delaiRetour, setDelaiRetour] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormReceptionData>({
     nom: '',
     demandeur: '',
     zone: '',
@@ -89,7 +94,7 @@ const FormReception = () => {
     piecesJointes: [],
     dateRetour: '',
     commentaires: '',
-    state: 0
+    state: 0,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -110,14 +115,14 @@ const FormReception = () => {
     }));
   };
 
-  const removeFile = (index) => {
+  const removeFile = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      piecesJointes: prev.piecesJointes.filter((_, i) => i !== index)
+      piecesJointes: prev.piecesJointes.filter((_, i) => i !== index),
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const filesToUpload = [];
@@ -198,9 +203,14 @@ const FormReception = () => {
       } else {
         alert(`Échec de l'enregistrement : ${dbResult.error}`);
       }
-    } catch (error) {
-      alert(`Erreur de soumission : ${error.message}`);
+    }  catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(`Erreur de soumission : ${error.message}`);
+      } else {
+        alert('Erreur de soumission inconnue.');
+      }
     }
+
   };
 
   return (
@@ -217,16 +227,16 @@ const FormReception = () => {
             <div style={cardStyle}>
               <h2 style={sectionTitleStyle}>Client</h2>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                {['nom', 'demandeur', 'zone', 'contact'].map((name) => (
-                  <input
-                    key={name}
-                    name={name}
-                    placeholder={placeholders[name]}
-                    onChange={handleChange}
-                    required={['nom', 'demandeur', 'contact'].includes(name)}
-                    style={inputStyle}
-                  />
-                ))}
+              {clientFields.map((name) => (
+                <input
+                  key={name}
+                  name={name}
+                  placeholder={placeholders[name]}
+                  onChange={handleChange}
+                  required={['nom', 'demandeur', 'contact'].includes(name)}
+                  style={inputStyle}
+                />
+              ))}
                 <input
                   name="affaire"
                   placeholder="Affaire suivie par *"

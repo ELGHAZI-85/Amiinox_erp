@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ColumnType } from "../utils/data-tasks"; 
 
 export interface Task {
   id: string;
@@ -20,15 +21,15 @@ export interface Task {
 interface TaskCardProps {
   task: Task;
   isDragging: boolean;
-  columnId: "en-attente" | "en-production" | "cloture";
+  columnId: ColumnType;
 }
 
-const priorityColors = {
-  high: "#ef4444",
-  medium: "#3b82f6",
-  low: "#22c55e",
-  default: "#6b7280",
-};
+// const priorityColors = {
+//   high: "#ef4444",
+//   medium: "#3b82f6",
+//   low: "#22c55e",
+//   default: "#6b7280",
+// };
 
 const getMediaType = (url: string): "image" | "video" | "pdf" | "other" => {
   const ext = url.split(".").pop()?.toLowerCase() || "";
