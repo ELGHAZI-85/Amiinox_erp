@@ -36,3 +36,17 @@ logs/
 
 # Electron-builder cache
 .release/
+# Electron-builder
+*.snap
+*.tar.gz
+*.zip
+*.deb
+*.rpm
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Temporary files
+tmp/
+temp/
